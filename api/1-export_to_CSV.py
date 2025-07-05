@@ -3,7 +3,7 @@
 1-export_to_CSV.py
 
 Exports all TODO tasks for a given employee ID from the JSONPlaceholder API
-to a CSV file in the format:
+to a CSV file in the following format:
 "USER_ID","USERNAME","TASK_COMPLETED_STATUS","TASK_TITLE"
 """
 
@@ -12,31 +12,46 @@ import requests
 import sys
 
 
-def fetch_user_and_tasks(employee_id):
-    """Fetches user details and their tasks from JSONPlaceholder."""
+def fetch_employee_data(employee_id):
+    """
+    Fetch user info and tasks list for the specified employee ID.
+
+    Returns:
+        user_data (dict): JSON response with employee information.
+        todos (list): List of tasks associated with the employee.
+    """
     base_url = "https://jsonplaceholder.typicode.com"
     user_url = f"{base_url}/users/{employee_id}"
     todos_url = f"{base_url}/todos?userId={employee_id}"
 
-    user_response = requests.get(user_url)
-    todos_response = requests.get(todos_url)
-    user_response.raise_for_status()
-    todos_response.raise_for_status()
+    user_resp = requests.get(user_url)
+    todos_resp = requests.get(todos_url)
+    user_resp.raise_for_status()
+    todos_resp.raise_for_status()
 
-    return user_response.json(), todos_response.json()
+    return user_resp.json(), todos_resp.json()
 
 
-def export_to_csv(user, todos):
-    """Writes the employee's task data to a CSV file."""
-    filename = f"{user['id']}.csv"
-    with open(filename, mode="w", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file, quoting=csv.QUOTE_ALL)
+def export_tasks_to_csv(user, todos):
+    """
+    Write employee's task data into a CSV file.
+
+    Args:
+        user (dict): Employee information.
+        todos (list): List of all tasks.
+    """
+    user_id = user.get("id")
+    username = user.get("username")
+    filename = f"{user_id}.csv"
+
+    with open(filename, mode="w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.writer(csv_file, quoting=csv.QUOTE_ALL)
         for task in todos:
             writer.writerow([
-                user['id'],
-                user['username'],
-                str(task['completed']),
-                task['title']
+                user_id,
+                username,
+                task.get("completed"),
+                task.get("title")
             ])
 
 
@@ -45,10 +60,11 @@ if __name__ == "__main__":
         print("Usage: python3 1-export_to_CSV.py <employee_id>")
         sys.exit(1)
 
-    employee_id = sys.argv[1]
+    employee_id = int(sys.argv[1])
+
     try:
-        user, todos = fetch_user_and_tasks(employee_id)
-        export_to_csv(user, todos)
-    except requests.RequestException as e:
-        print(f"Error fetching data: {e}")
+        user_info, task_list = fetch_employee_data(employee_id)
+        export_tasks_to_csv(user_info, task_list)
+    except requests.RequestException as error:
+        print(f"Error fetching data: {error}")
         sys.exit(1)
