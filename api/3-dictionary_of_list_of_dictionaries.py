@@ -1,34 +1,36 @@
 #!/usr/bin/python3
-"""Export all tasks from all employees to JSON format"""
+"""
+Exports all employees' TODO tasks to a JSON file.
+"""
+
 import json
 import requests
 
 
 def export_all_tasks_to_json():
-    """Export all tasks from all employees to JSON file"""
+    """Export all employees' tasks to a JSON file."""
     # Base URL for the API
-    base_url = "https://jsonplaceholder.typicode.com/"
+    base_url = "https://jsonplaceholder.typicode.com"
 
     # Get all users
-    users_response = requests.get(base_url + "users")
+    users_response = requests.get(f"{base_url}/users")
     users = users_response.json()
 
     # Get all todos
-    todos_response = requests.get(base_url + "todos")
+    todos_response = requests.get(f"{base_url}/todos")
     todos = todos_response.json()
 
     # Create a dictionary to hold all tasks organized by user ID
     all_tasks = {}
 
-    # Process each user
     for user in users:
-        user_id = str(user["id"])
+        user_id = user["id"]
         username = user["username"]
         
         # Filter todos for this user
-        user_todos = [todo for todo in todos if todo["userId"] == user["id"]]
+        user_todos = [todo for todo in todos if todo["userId"] == user_id]
         
-        # Create the list of tasks for this user
+        # Format the tasks for this user
         tasks_list = []
         for todo in user_todos:
             task_dict = {
@@ -39,7 +41,7 @@ def export_all_tasks_to_json():
             tasks_list.append(task_dict)
         
         # Add to the main dictionary
-        all_tasks[user_id] = tasks_list
+        all_tasks[str(user_id)] = tasks_list
 
     # Write to JSON file
     with open("todo_all_employees.json", "w") as jsonfile:
@@ -47,4 +49,4 @@ def export_all_tasks_to_json():
 
 
 if __name__ == "__main__":
-    export_all_tasks_to_json()
+    export_all_tasks_to_json() 
