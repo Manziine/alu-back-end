@@ -1,23 +1,32 @@
 #!/usr/bin/python3
-"""export Json"""
-
+"""Export JSON"""
 
 import json
 import requests
 
 
+def get_todos(user_id):
+    url = "https://jsonplaceholder.typicode.com/users/{}/todos".format(user_id)
+    response = requests.get(url)
+    return json.loads(response.text)
+
+
 if __name__ == "__main__":
-    def getTodos(id):
-        link = "https://jsonplaceholder.typicode.com/users/{}/todos".format(id)
-        res = requests.get(link)
-        return json.loads(res.text)
-    link = "https://jsonplaceholder.typicode.com/users/"
-    res = requests.get(link)
-    users = json.loads(res.text)
+    url = "https://jsonplaceholder.typicode.com/users/"
+    response = requests.get(url)
+    users = json.loads(response.text)
+
     data = {}
-    for i in users:
-        todos = getTodos(i["id"])
-        data[i["id"]] = [{"task": j["title"], "completed": j["completed"],
-                          "username": i["username"]} for j in todos]
-    with open("todo_all_employees.json", 'w', encoding='utf-8') as f:
+    for user in users:
+        todos = get_todos(user["id"])
+        data[user["id"]] = [
+            {
+                "task": todo["title"],
+                "completed": todo["completed"],
+                "username": user["username"]
+            }
+            for todo in todos
+        ]
+
+    with open("todo_all_employees.json", "w", encoding="utf-8") as f:
         f.write(json.dumps(data))
